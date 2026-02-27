@@ -1,45 +1,67 @@
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 import os
 
-st.set_page_config(page_title="AI Code Reviewer", page_icon="🧠")
-st.title("🧠 AI Code Reviewer & Debug Assistant")
+# Page config
+st.set_page_config(
+    page_title="AI Code Reviewer",
+    page_icon="🧠",
+    layout="centered"
+)
 
-# Load API Key
-api_key = os.getenv("GOOGLE_API_KEY")
+st.title("🧠 AI Code Reviewer & Debug Assistant")
+st.write("Analyze code, detect bugs, and get optimization suggestions")
+
+# Load API key
+api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
-    st.error("❌ GOOGLE_API_KEY not found in Secrets")
+    st.error("❌ OPENAI_API_KEY not found in Streamlit Secrets")
     st.stop()
 
-# Configure Gemini
-genai.configure(api_key=api_key)
+client = OpenAI(api_key=api_key)
 
-# ✅ ONLY MODEL THAT WORKS EVERYWHERE
-model = genai.GenerativeModel("gemini-1.0-pro")
+# User input
+language = st.selectbox("Select Programming Language", ["Python", "C", "Java"])
 
-code_input = st.text_area("Paste your code here", height=300)
+code_input = st.text_area(
+    "Paste your code here",
+    height=300,
+    placeholder="Enter your source code..."
+)
 
-if st.button("Analyze Code"):
+# Analyze button
+if st.button("🔍 Analyze Code"):
     if not code_input.strip():
-        st.warning("Please enter some code")
+        st.warning("⚠️ Please enter some code.")
     else:
         with st.spinner("Analyzing code..."):
             try:
-                response = model.generate_content(
-                    f"""
-You are a senior software engineer.
-Analyze the following code:
-1. Explain what it does
-2. Find bugs or issues
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a senior software engineer and code reviewer."
+                        },
+                        {
+                            "role": "user",
+                            "content": f"""
+Analyze the following {language} code:
+1. Explain what the code does
+2. Identify bugs or issues
 3. Suggest optimizations
 4. Provide improved code
 
 Code:
 {code_input}
 """
+                        }
+                    ]
                 )
+
                 st.success("✅ Analysis Complete")
-                st.write(response.text)
+                st.markdown("### 🧠 AI Review")
+                st.write(response.choices[0].message.content)
 
             except Exception as e:
                 st.error(f"❌ Error occurred: {e}")
