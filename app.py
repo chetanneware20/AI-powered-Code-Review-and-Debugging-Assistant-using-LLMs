@@ -2,62 +2,34 @@ import streamlit as st
 import google.generativeai as genai
 import os
 
-# -------------------- PAGE CONFIG --------------------
-st.set_page_config(
-    page_title="AI Code Reviewer",
-    page_icon="🧠",
-    layout="centered"
-)
+st.set_page_config(page_title="AI Code Reviewer", page_icon="🧠")
 
 st.title("🧠 AI Code Reviewer & Debug Assistant")
-st.write("Analyze code, detect bugs, and get optimization suggestions using GenAI")
 
-# -------------------- API KEY --------------------
+# Load API Key
 api_key = os.getenv("GOOGLE_API_KEY")
-
 if not api_key:
-    st.error("❌ GOOGLE_API_KEY not found. Please add it in Streamlit Secrets.")
+    st.error("GOOGLE_API_KEY not found")
     st.stop()
 
+# Configure Gemini
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-pro")
 
-# -------------------- USER INPUT --------------------
-language = st.selectbox(
-    "Select Programming Language",
-    ["Python", "C", "Java"]
-)
+# ✅ FIXED MODEL NAME
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-code_input = st.text_area(
-    "Paste your code here",
-    height=300,
-    placeholder="Enter your source code..."
-)
+code_input = st.text_area("Paste your code here", height=300)
 
-# -------------------- ANALYZE BUTTON --------------------
-if st.button("🔍 Analyze Code"):
+if st.button("Analyze Code"):
     if code_input.strip() == "":
-        st.warning("⚠️ Please enter some code to analyze.")
+        st.warning("Please enter code")
     else:
-        with st.spinner("Analyzing code..."):
+        with st.spinner("Analyzing..."):
             try:
-                prompt = f"""
-You are a senior software engineer.
-
-Analyze the following {language} code and provide:
-1. Explanation of what the code does
-2. Bugs or issues (if any)
-3. Optimization suggestions
-4. Improved version of the code (if applicable)
-
-Code:
-{code_input}
-"""
-                response = model.generate_content(prompt)
-                st.success("✅ Analysis Complete")
-
-                st.markdown("### 🧠 AI Review")
+                response = model.generate_content(
+                    f"Explain and debug this code:\n{code_input}"
+                )
+                st.success("Analysis complete")
                 st.write(response.text)
-
             except Exception as e:
                 st.error(f"❌ Error occurred: {e}")
