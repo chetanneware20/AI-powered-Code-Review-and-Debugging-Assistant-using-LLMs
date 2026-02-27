@@ -5,7 +5,7 @@ import os
 st.set_page_config(page_title="AI Code Reviewer", page_icon="🧠")
 st.title("🧠 AI Code Reviewer & Debug Assistant")
 
-# Load API key
+# Load API Key
 api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     st.error("❌ GOOGLE_API_KEY not found in Secrets")
@@ -14,8 +14,8 @@ if not api_key:
 # Configure Gemini
 genai.configure(api_key=api_key)
 
-# ✅ STABLE MODEL
-model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
+# ✅ ONLY MODEL THAT WORKS EVERYWHERE
+model = genai.GenerativeModel("gemini-1.0-pro")
 
 code_input = st.text_area("Paste your code here", height=300)
 
@@ -29,8 +29,8 @@ if st.button("Analyze Code"):
                     f"""
 You are a senior software engineer.
 Analyze the following code:
-1. Explain the logic
-2. Find bugs
+1. Explain what it does
+2. Find bugs or issues
 3. Suggest optimizations
 4. Provide improved code
 
